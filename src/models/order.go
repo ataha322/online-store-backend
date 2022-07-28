@@ -2,7 +2,7 @@ package models
 
 type Order struct {
 	Model
-	TransactionId   string      `json:"transaction_id" gorm:"null""`
+	TransactionId   string      `json:"transaction_id" gorm:"null"`
 	UserId          uint        `json:"user_id"`
 	Code            string      `json:"code"`
 	AmbassadorEmail string      `json:"ambassador_email"`
@@ -16,7 +16,7 @@ type Order struct {
 	Zip             string      `json:"zip" gorm:"null"`
 	Complete        bool        `json:"-" gorm:"default:false"`
 	Total           float64     `json:"total" gorm:"-"`
-	OrderItems      []OrderItem `json:"order_items" gorm:"foreignKet:OrderId"`
+	OrderItems      []OrderItem `json:"order_items" gorm:"foreignKey:OrderId"`
 }
 
 type OrderItem struct {

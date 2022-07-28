@@ -30,6 +30,7 @@ func Register(c *fiber.Ctx) error {
 		IsAmbassador: strings.Contains(c.Path(), "/api/ambassador"),
 	}
 	user.SetPassword(data["password"])
+
 	database.DB.Create(&user)
 
 	return c.JSON(user)
@@ -49,14 +50,14 @@ func Login(c *fiber.Ctx) error {
 	if user.Id == 0 {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid Credentials!",
+			"message": "Invalid Credentials",
 		})
 	}
 
 	if err := user.ComparePassword(data["password"]); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Wrong password",
+			"message": "Invalid Credentials",
 		})
 	}
 
@@ -82,7 +83,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid Credentials!",
+			"message": "Invalid Credentials",
 		})
 	}
 
@@ -96,13 +97,15 @@ func Login(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
-		"Message": "success",
+		"message": "success",
 	})
 }
 
 func User(c *fiber.Ctx) error {
 	id, _ := middlewares.GetUserId(c)
+
 	var user models.User
+
 	database.DB.Where("id = ?", id).First(&user)
 
 	if strings.Contains(c.Path(), "/api/ambassador") {
@@ -110,6 +113,7 @@ func User(c *fiber.Ctx) error {
 		ambassador.CalculateRevenue(database.DB)
 		return c.JSON(ambassador)
 	}
+
 	return c.JSON(user)
 }
 
@@ -120,6 +124,7 @@ func Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
 	}
+
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
@@ -133,6 +138,7 @@ func UpdateInfo(c *fiber.Ctx) error {
 	if err := c.BodyParser(&data); err != nil {
 		return err
 	}
+
 	id, _ := middlewares.GetUserId(c)
 
 	user := models.User{
@@ -143,6 +149,7 @@ func UpdateInfo(c *fiber.Ctx) error {
 	user.Id = id
 
 	database.DB.Model(&user).Updates(&user)
+
 	return c.JSON(user)
 }
 
@@ -168,5 +175,6 @@ func UpdatePassword(c *fiber.Ctx) error {
 	user.SetPassword(data["password"])
 
 	database.DB.Model(&user).Updates(&user)
+
 	return c.JSON(user)
 }

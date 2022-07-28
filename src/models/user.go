@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	Model
-	FirstName    string   `json:"fist_name"`
+	FirstName    string   `json:"first_name"`
 	LastName     string   `json:"last_name"`
 	Email        string   `json:"email" gorm:"unique"`
 	Password     []byte   `json:"-"`
@@ -22,6 +22,10 @@ func (user *User) SetPassword(password string) {
 
 func (user *User) ComparePassword(password string) error {
 	return bcrypt.CompareHashAndPassword(user.Password, []byte(password))
+}
+
+func (user *User) Name() string {
+	return user.FirstName + " " + user.LastName
 }
 
 type Admin User
@@ -55,7 +59,7 @@ func (ambassador *Ambassador) CalculateRevenue(db *gorm.DB) {
 		Complete: true,
 	})
 
-	var revenue float64 = 0
+	var revenue float64 = 0.0
 
 	for _, order := range orders {
 		for _, orderItem := range order.OrderItems {

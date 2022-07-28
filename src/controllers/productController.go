@@ -5,7 +5,6 @@ import (
 	"ambassador/src/models"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"sort"
 	"strconv"
@@ -19,7 +18,6 @@ func Products(c *fiber.Ctx) error {
 	database.DB.Find(&products)
 
 	return c.JSON(products)
-
 }
 
 func CreateProducts(c *fiber.Ctx) error {
@@ -37,11 +35,14 @@ func CreateProducts(c *fiber.Ctx) error {
 }
 
 func GetProduct(c *fiber.Ctx) error {
-	var product models.Product
 	id, _ := strconv.Atoi(c.Params("id"))
 
+	var product models.Product
+
 	product.Id = uint(id)
+
 	database.DB.Find(&product)
+
 	return c.JSON(product)
 }
 
@@ -50,9 +51,11 @@ func UpdateProduct(c *fiber.Ctx) error {
 
 	product := models.Product{}
 	product.Id = uint(id)
+
 	if err := c.BodyParser(&product); err != nil {
 		return err
 	}
+
 	database.DB.Model(&product).Updates(&product)
 
 	go database.ClearCache("products_frontend", "products_backend")
@@ -73,15 +76,13 @@ func DeleteProduct(c *fiber.Ctx) error {
 	return nil
 }
 
-func ProductFrontend(c *fiber.Ctx) error {
+func ProductsFrontend(c *fiber.Ctx) error {
 	var products []models.Product
 	var ctx = context.Background()
 
 	result, err := database.Cache.Get(ctx, "products_frontend").Result()
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		database.DB.Find(&products)
 
 		bytes, err := json.Marshal(products)
@@ -90,7 +91,7 @@ func ProductFrontend(c *fiber.Ctx) error {
 			panic(err)
 		}
 
-		if errKey := database.Cache.Set(ctx, "products_frontend", bytes, 30*time.Minute).Err(); err != nil {
+		if errKey := database.Cache.Set(ctx, "products_frontend", bytes, 30*time.Minute).Err(); errKey != nil {
 			panic(errKey)
 		}
 	} else {
@@ -107,12 +108,9 @@ func ProductsBackend(c *fiber.Ctx) error {
 	result, err := database.Cache.Get(ctx, "products_backend").Result()
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		database.DB.Find(&products)
 
 		bytes, err := json.Marshal(products)
-
 		if err != nil {
 			panic(err)
 		}
@@ -151,7 +149,8 @@ func ProductsBackend(c *fiber.Ctx) error {
 	var total = len(searchedProducts)
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	perPage := 9
-	var data []models.Product = searchedProducts
+
+	var data []models.Product
 
 	if total <= page*perPage && total >= (page-1)*perPage {
 		data = searchedProducts[(page-1)*perPage : total]
@@ -162,9 +161,11 @@ func ProductsBackend(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"data":      data,
-		"total":     total,
-		"page":      page,
-		"last_page": total/perPage + 1,
+		"data": data,
+		"meta": fiber.Map{
+			"total":     total,
+			"page":      page,
+			"last_page": total/perPage + 1,
+		},
 	})
 }

@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+const SecretKey = "secret"
+
+type ClaimsWithScope struct {
+	jwt.StandardClaims
+	Scope string
+}
+
 func IsAuthenticated(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 
@@ -33,13 +40,6 @@ func IsAuthenticated(c *fiber.Ctx) error {
 	}
 
 	return c.Next()
-}
-
-const SecretKey = "secret"
-
-type ClaimsWithScope struct {
-	jwt.StandardClaims
-	Scope string
 }
 
 func GenerateJWT(id uint, scope string) (string, error) {

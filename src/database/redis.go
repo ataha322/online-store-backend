@@ -27,7 +27,7 @@ func SetupCacheChannel() {
 			key := <-ch
 			Cache.Del(context.Background(), key)
 
-			fmt.Println("Cache cleared %s" + key)
+			fmt.Println("Cache cleared " + key)
 		}
 	}(CacheChannel)
 
